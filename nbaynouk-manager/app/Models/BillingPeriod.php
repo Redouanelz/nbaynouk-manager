@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\PaymentStatus;
+use App\Support\Money;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -40,25 +41,29 @@ class BillingPeriod extends Model
 
     public function getTotalPaidAttribute(): string
     {
-        return number_format((float) $this->payments()->sum('amount'), 2, '.', '');
+        if ($this->relationLoaded('payments')) {
+            return $this->payments->reduce(fn (string $total, Payment $payment) => bcadd($total, $payment->amount, 2), '0.00');
+        }
+
+        return bcadd((string) $this->payments()->sum('amount'), '0', 2);
     }
 
     public function getRemainingAmountAttribute(): string
     {
-        return number_format(max(0, (float) $this->amount - (float) $this->total_paid), 2, '.', '');
+        return Money::subtract($this->amount, $this->total_paid);
     }
 
     public function getPaymentStatusAttribute(): PaymentStatus
     {
-        if ((float) $this->total_paid >= (float) $this->amount) {
+        if (bccomp($this->total_paid, $this->amount, 2) >= 0) {
             return PaymentStatus::Paid;
         }
 
-        if ((float) $this->remaining_amount > 0 && $this->due_date?->isBefore(today())) {
+        if (bccomp($this->remaining_amount, '0', 2) === 1 && $this->due_date?->isBefore(today())) {
             return PaymentStatus::Overdue;
         }
 
-        return (float) $this->total_paid > 0
+        return bccomp($this->total_paid, '0', 2) === 1
             ? PaymentStatus::Partial
             : PaymentStatus::Unpaid;
     }

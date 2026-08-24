@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BillingType;
 use App\Enums\ProjectStatus;
+use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -96,17 +97,21 @@ class Project extends Model
 
     public function getTotalPaidAttribute(): string
     {
-        return number_format((float) $this->payments()->sum('amount'), 2, '.', '');
+        if ($this->relationLoaded('payments')) {
+            return $this->payments->reduce(fn (string $total, Payment $payment) => bcadd($total, $payment->amount, 2), '0.00');
+        }
+
+        return bcadd((string) $this->payments()->sum('amount'), '0', 2);
     }
 
     public function getRemainingAmountAttribute(): string
     {
-        return number_format(max(0, (float) $this->amount - (float) $this->total_paid), 2, '.', '');
+        return Money::subtract($this->amount, $this->total_paid);
     }
 
     public function formattedAmount(string $attribute = 'amount'): string
     {
-        return number_format((float) $this->{$attribute}, 0, ',', ' ').' DH';
+        return Money::format($this->{$attribute}, $this->currency);
     }
 
     public function scopeActive(Builder $query): Builder
