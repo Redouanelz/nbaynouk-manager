@@ -29,7 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/projects/{project}/services/{projectService}/toggle', [ProjectServiceController::class, 'toggle'])->name('project-services.toggle');
     Route::patch('/projects/{project}/services/{projectService}', [ProjectServiceController::class, 'update'])->name('project-services.update');
     Route::post('/projects/{project}/custom-services', [ProjectServiceController::class, 'storeCustom'])->name('project-services.custom.store');
-    Route::post('/projects/{project}/services/{projectService}/attachments', [ProjectServiceAttachmentController::class, 'store'])->name('project-service-attachments.store');
+    Route::post('/projects/{project}/services/{projectService}/attachments', [ProjectServiceAttachmentController::class, 'store'])->middleware('throttle:20,1')->name('project-service-attachments.store');
     Route::get('/projects/{project}/services/{projectService}/attachments/{attachment}', [ProjectServiceAttachmentController::class, 'show'])->name('project-service-attachments.show');
     Route::delete('/projects/{project}/services/{projectService}/attachments/{attachment}', [ProjectServiceAttachmentController::class, 'destroy'])->name('project-service-attachments.destroy');
     Route::resource('clients', ClientController::class);

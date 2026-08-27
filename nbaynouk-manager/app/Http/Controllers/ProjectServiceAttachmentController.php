@@ -18,9 +18,9 @@ class ProjectServiceAttachmentController extends Controller
     {
         $this->assertRelation($project, $projectService);
         abort_unless($attachment->project_service_id === $projectService->id, 404);
-        abort_unless(Storage::disk('public')->exists($attachment->file_path), 404);
+        abort_unless(Storage::disk('local')->exists($attachment->file_path), 404);
 
-        return response()->file(Storage::disk('public')->path($attachment->file_path), [
+        return response()->file(Storage::disk('local')->path($attachment->file_path), [
             'Content-Type' => $attachment->mime_type ?: 'application/octet-stream',
             'Content-Disposition' => 'inline; filename="'.str_replace(['"', "\r", "\n"], '', $attachment->original_name).'"',
             'X-Content-Type-Options' => 'nosniff',
@@ -34,7 +34,7 @@ class ProjectServiceAttachmentController extends Controller
         try {
             DB::transaction(function () use ($request, $projectService, $activity, &$created): void {
                 foreach ($request->file('files') as $file) {
-                    $path = $file->store("project-services/{$projectService->id}", 'public');
+                    $path = $file->store("project-services/{$projectService->id}", 'local');
                     $created[] = $projectService->attachments()->create(['file_path' => $path, 'original_name' => $file->getClientOriginalName(), 'mime_type' => $file->getMimeType(), 'file_size' => $file->getSize()]);
                 }
                 $name = $projectService->service->name;
@@ -42,7 +42,7 @@ class ProjectServiceAttachmentController extends Controller
             });
         } catch (\Throwable $e) {
             foreach ($created as $attachment) {
-                Storage::disk('public')->delete($attachment->file_path);
+                Storage::disk('local')->delete($attachment->file_path);
             }
             throw $e;
         }
@@ -60,7 +60,7 @@ class ProjectServiceAttachmentController extends Controller
             $name = $projectService->service->name;
             $activity->record($projectService->project, 'service_attachment_deleted', 'Une pièce jointe a été supprimée de '.$name.'.', ['service_id' => $projectService->service_id, 'service_name' => $name]);
         });
-        Storage::disk('public')->delete($path);
+        Storage::disk('local')->delete($path);
 
         return response()->json(['success' => true, 'message' => 'Pièce jointe supprimée.']);
     }

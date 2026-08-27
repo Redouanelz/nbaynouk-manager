@@ -16,12 +16,18 @@ use App\Services\BillingPeriodService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProjectController extends Controller
 {
     public function index(Request $request): View
     {
+        $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', Rule::enum(ProjectStatus::class)],
+            'billing_type' => ['nullable', Rule::enum(BillingType::class)],
+        ]);
         $projects = Project::query()->with(['business.client', 'payments'])
             ->withCount(['activeProjectServices', 'activeProjectServices as completed_services_count' => fn ($q) => $q->where('status', 'completed')])
             ->when($request->filled('search'), fn ($q) => $q->where(function ($q) use ($request) {

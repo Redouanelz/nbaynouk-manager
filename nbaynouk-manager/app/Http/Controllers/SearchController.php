@@ -12,7 +12,8 @@ class SearchController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $term = trim($request->string('q')->toString());
+        $data = $request->validate(['q' => ['nullable', 'string', 'max:255']]);
+        $term = trim($data['q'] ?? '');
         if (mb_strlen($term) < 2) {
             return response()->json(['projects' => [], 'clients' => [], 'businesses' => []]);
         }

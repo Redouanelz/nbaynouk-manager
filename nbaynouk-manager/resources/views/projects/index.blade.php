@@ -1,3 +1,33 @@
-<x-layout title="Projets"><x-page-header eyebrow="Portefeuille" title="Projets" description="Gérez tous les projets suivis par Nbaynouk."><x-slot:actions><a class="button-primary" href="{{ route('projects.create') }}">Nouveau projet</a></x-slot:actions></x-page-header>
-<form class="filter-bar" method="GET"><input class="input min-w-52 flex-1" type="search" name="search" value="{{ request('search') }}" placeholder="Rechercher un projet..."><select class="select" name="status"><option value="">Tous les statuts</option>@foreach(\App\Enums\ProjectStatus::cases() as $status)<option value="{{ $status->value }}" @selected(request('status')===$status->value)>{{ $status->label() }}</option>@endforeach</select><select class="select" name="billing_type"><option value="">Toute facturation</option>@foreach(\App\Enums\BillingType::cases() as $type)<option value="{{ $type->value }}" @selected(request('billing_type')===$type->value)>{{ $type->label() }}</option>@endforeach</select><button class="button-secondary">Filtrer</button></form>
-<div class="table-wrap mt-8"><table><thead><tr><th>Projet</th><th>Entreprise</th><th>Client</th><th>Statut</th><th>Avancement</th><th>Type</th><th>Montant</th><th>Payé</th><th>Reste</th><th>Échéance</th><th></th></tr></thead><tbody>@forelse($projects as $project)<tr><td><a class="font-medium hover:underline" href="{{ route('projects.show',$project) }}">{{ $project->name }}</a><span>{{ $project->code }}</span></td><td>{{ $project->business->name }}</td><td>{{ $project->business->client->name }}</td><td><x-badge :value="$project->status" /></td><td><strong>{{ $project->progress_percentage }}%</strong><x-progress-bar :value="$project->progress_percentage" compact/></td><td>{{ $project->billing_type->label() }}</td><td>{{ \App\Support\Money::format($project->amount) }}</td><td>{{ \App\Support\Money::format($project->total_paid) }}</td><td>{{ \App\Support\Money::format($project->remaining_amount) }}</td><td>{{ $project->next_payment_date?->translatedFormat('d M Y') ?? '—' }}</td><td><a class="text-link" href="{{ route('projects.edit',$project) }}">Modifier</a></td></tr>@empty<tr><td colspan="11"><x-empty-state title="Aucun projet" description="Créez votre premier projet pour commencer à suivre vos clients."><x-slot:action><a class="button-primary" href="{{ route('projects.create') }}">Créer un projet</a></x-slot:action></x-empty-state></td></tr>@endforelse</tbody></table></div><div class="mt-8">{{ $projects->links() }}</div></x-layout>
+@php
+    $pageTitle = match (request('status')) {
+        \App\Enums\ProjectStatus::Launch->value => 'Projets en lancement',
+        \App\Enums\ProjectStatus::Suivi->value => 'Projets en suivi',
+        default => 'Projets',
+    };
+@endphp
+
+<x-layout :title="$pageTitle">
+    <x-page-header eyebrow="Portefeuille" :title="$pageTitle" description="Gérez tous les projets suivis par Nbaynouk.">
+        <x-slot:actions><a class="button-primary" href="{{ route('projects.create') }}">Nouveau projet</a></x-slot:actions>
+    </x-page-header>
+
+    <form class="filter-bar" method="GET">
+        <input class="input min-w-52 flex-1" type="search" name="search" value="{{ request('search') }}" placeholder="Rechercher un projet...">
+        <select class="select" name="status">
+            <option value="">Tous les statuts</option>
+            @foreach(\App\Enums\ProjectStatus::cases() as $status)
+                <option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ $status->label() }}</option>
+            @endforeach
+        </select>
+        <select class="select" name="billing_type">
+            <option value="">Toute facturation</option>
+            @foreach(\App\Enums\BillingType::cases() as $type)
+                <option value="{{ $type->value }}" @selected(request('billing_type') === $type->value)>{{ $type->label() }}</option>
+            @endforeach
+        </select>
+        <button class="button-secondary">Filtrer</button>
+    </form>
+
+    <div class="table-wrap mt-8"><table><thead><tr><th>Projet</th><th>Entreprise</th><th>Client</th><th>Statut</th><th>Avancement</th><th>Type</th><th>Montant</th><th>Payé</th><th>Reste</th><th>Échéance</th><th></th></tr></thead><tbody>@forelse($projects as $project)<tr><td><a class="font-medium hover:underline" href="{{ route('projects.show', $project) }}">{{ $project->name }}</a><span>{{ $project->code }}</span></td><td>{{ $project->business->name }}</td><td>{{ $project->business->client->name }}</td><td><x-badge :value="$project->status" /></td><td><strong>{{ $project->progress_percentage }}%</strong><x-progress-bar :value="$project->progress_percentage" compact/></td><td>{{ $project->billing_type->label() }}</td><td>{{ \App\Support\Money::format($project->amount) }}</td><td>{{ \App\Support\Money::format($project->total_paid) }}</td><td>{{ \App\Support\Money::format($project->remaining_amount) }}</td><td>{{ $project->next_payment_date?->translatedFormat('d M Y') ?? '—' }}</td><td><a class="text-link" href="{{ route('projects.edit', $project) }}">Modifier</a></td></tr>@empty<tr><td colspan="11"><x-empty-state title="Aucun projet" description="Créez votre premier projet pour commencer à suivre vos clients."><x-slot:action><a class="button-primary" href="{{ route('projects.create') }}">Créer un projet</a></x-slot:action></x-empty-state></td></tr>@endforelse</tbody></table></div>
+    <div class="mt-8">{{ $projects->links() }}</div>
+</x-layout>

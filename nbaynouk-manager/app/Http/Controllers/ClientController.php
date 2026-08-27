@@ -12,6 +12,7 @@ class ClientController extends Controller
 {
     public function index(Request $request): View
     {
+        $request->validate(['search' => ['nullable', 'string', 'max:255']]);
         $clients = Client::query()->withCount(['businesses', 'businesses as projects_count' => fn ($q) => $q->join('projects', 'businesses.id', '=', 'projects.business_id')])->when($request->filled('search'), fn ($q) => $q->where('name', 'like', '%'.$request->string('search').'%'))->orderBy('name')->paginate(15)->withQueryString();
 
         return view('clients.index', compact('clients'));

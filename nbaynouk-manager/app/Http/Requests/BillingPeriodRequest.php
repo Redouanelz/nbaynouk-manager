@@ -13,6 +13,6 @@ class BillingPeriodRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['period_start' => ['required', 'date'], 'period_end' => ['required', 'date', 'after_or_equal:period_start'], 'amount' => ['required', 'decimal:0,2', 'gt:0'], 'due_date' => ['required', 'date'], 'description' => ['nullable', 'string', 'max:255']];
+        return ['period_start' => ['required', 'date'], 'period_end' => ['required', 'date', 'after_or_equal:period_start'], 'amount' => ['required', 'decimal:0,2', 'gt:0', 'max:9999999999.99'], 'due_date' => ['required', 'date'], 'description' => ['nullable', 'string', 'max:255']];
     }
 }

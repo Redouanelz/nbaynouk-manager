@@ -13,6 +13,6 @@ class BusinessRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['client_id' => ['required', 'exists:clients,id'], 'name' => ['required', 'string', 'max:255'], 'website' => ['nullable', 'url', 'max:255'], 'instagram' => ['nullable', 'string', 'max:255']];
+        return ['client_id' => ['required', 'exists:clients,id'], 'name' => ['required', 'string', 'max:255'], 'website' => ['nullable', 'url:http,https', 'max:255'], 'instagram' => ['nullable', 'string', 'max:255']];
     }
 }

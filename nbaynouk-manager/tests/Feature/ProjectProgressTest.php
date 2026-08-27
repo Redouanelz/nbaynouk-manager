@@ -56,25 +56,25 @@ class ProjectProgressTest extends TestCase
 
     public function test_attachment_upload_and_delete_manage_database_and_storage(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $this->actingAs(User::factory()->create());
         $project = Project::factory()->create();
         $item = $this->attach($project, 'Shooting');
 
         $this->postJson(route('project-service-attachments.store', [$project, $item]), ['files' => [UploadedFile::fake()->create('photo.jpg', 100, 'image/jpeg')]])->assertCreated();
         $attachment = $item->attachments()->firstOrFail();
-        Storage::disk('public')->assertExists($attachment->file_path);
+        Storage::disk('local')->assertExists($attachment->file_path);
         $this->get(route('project-service-attachments.show', [$project, $item, $attachment]))
             ->assertOk()
             ->assertHeader('Content-Type', 'image/jpeg');
         $this->deleteJson(route('project-service-attachments.destroy', [$project, $item, $attachment]))->assertOk();
-        Storage::disk('public')->assertMissing($attachment->file_path);
+        Storage::disk('local')->assertMissing($attachment->file_path);
         $this->assertDatabaseMissing('project_service_attachments', ['id' => $attachment->id]);
     }
 
     public function test_invalid_and_unauthenticated_uploads_are_rejected(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
         $project = Project::factory()->create();
         $item = $this->attach($project, 'Design');
         $url = route('project-service-attachments.store', [$project, $item]);

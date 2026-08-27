@@ -14,12 +14,20 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
 {
     public function index(Request $request): View
     {
+        $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'project_id' => ['nullable', 'integer', 'exists:projects,id'],
+            'client_id' => ['nullable', 'integer', 'exists:clients,id'],
+            'method' => ['nullable', Rule::enum(PaymentMethod::class)],
+            'month' => ['nullable', 'date_format:Y-m'],
+        ]);
         $payments = Payment::query()->with(['project.business.client', 'billingPeriod'])
             ->when($request->filled('search'), fn ($q) => $q->where(fn ($q) => $q->where('reference', 'like', '%'.$request->string('search').'%')->orWhereHas('project', fn ($q) => $q->where('name', 'like', '%'.$request->string('search').'%'))))
             ->when($request->filled('project_id'), fn ($q) => $q->where('project_id', $request->integer('project_id')))
@@ -56,7 +64,12 @@ class PaymentController extends Controller
             return $payment;
         });
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Paiement enregistré avec succès.', 'payment' => $payment, 'total_paid' => $payment->project->total_paid, 'remaining_amount' => $payment->project->remaining_amount], 201);
+            return response()->json([
+                'message' => 'Paiement enregistré avec succès.',
+                'payment' => ['id' => $payment->id, 'amount' => $payment->amount, 'payment_date' => $payment->payment_date->toDateString()],
+                'total_paid' => $payment->project->total_paid,
+                'remaining_amount' => $payment->project->remaining_amount,
+            ], 201);
         }
 
         return redirect()->route('projects.show', $payment->project)->with('success', 'Paiement enregistré.');

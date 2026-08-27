@@ -102,4 +102,21 @@ class ApplicationWorkflowTest extends TestCase
         $this->get('/payments')->assertOk()->assertSee($project->name);
         $this->get('/billing')->assertOk()->assertSee($project->code);
     }
+
+    public function test_billing_page_ignores_periods_from_archived_projects(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $project = Project::factory()->create();
+        $project->billingPeriods()->create([
+            'period_start' => today()->startOfMonth(),
+            'period_end' => today()->endOfMonth(),
+            'amount' => '5000.00',
+            'due_date' => today()->addDays(5),
+        ]);
+        $project->delete();
+
+        $this->get('/billing')
+            ->assertOk()
+            ->assertDontSee($project->code);
+    }
 }

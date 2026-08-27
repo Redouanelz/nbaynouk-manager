@@ -15,7 +15,12 @@ class BillingPeriodController extends Controller
 {
     public function index(Request $request): View
     {
-        $periods = BillingPeriod::with(['project.business.client', 'payments'])->orderByDesc('due_date')->get();
+        $request->validate(['status' => ['nullable', 'string', 'in:paid,partial,unpaid,overdue,upcoming'], 'page' => ['nullable', 'integer', 'min:1', 'max:100000']]);
+        $periods = BillingPeriod::query()
+            ->whereHas('project')
+            ->with(['project.business.client', 'payments'])
+            ->orderByDesc('due_date')
+            ->get();
         if ($request->filled('status')) {
             $periods = $periods->filter(fn ($period) => match ($request->string('status')->toString()) {
                 'upcoming' => $period->due_date?->isFuture() && $period->payment_status->value !== 'paid', default => $period->payment_status->value === $request->string('status')->toString()
