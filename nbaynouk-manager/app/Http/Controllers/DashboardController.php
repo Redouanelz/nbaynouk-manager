@@ -22,7 +22,9 @@ class DashboardController extends Controller
         $pendingCount = $periods->filter(fn (BillingPeriod $period) => bccomp($period->remaining_amount, '0', 2) === 1)->count();
         $watchPeriods = $periods->filter(fn (BillingPeriod $period) => $period->payment_status->value === 'overdue' || ($period->due_date?->between(today(), today()->addDays(7)) && bccomp($period->remaining_amount, '0', 2) === 1))->sortBy('due_date')->take(5);
         $waitingProjects = Project::query()->with('business.client')->status(ProjectStatus::Waiting)->latest()->take(4)->get();
-        $recentProjects = Project::query()->with(['business.client', 'payments'])->latest()->take(7)->get();
+        $recentProjects = Project::query()->with(['business.client', 'payments'])
+            ->withCount(['activeProjectServices', 'activeProjectServices as completed_services_count' => fn ($q) => $q->where('status', 'completed')])
+            ->latest()->take(7)->get();
         $statusCounts = Project::query()->selectRaw('status, count(*) as aggregate')->groupBy('status')->pluck('aggregate', 'status');
         $createdThisMonth = Project::query()->whereBetween('created_at', [today()->startOfMonth(), today()->endOfMonth()])->count();
 

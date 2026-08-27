@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\BillingType;
 use App\Enums\PaymentMethod;
+use App\Enums\ProjectServiceStatus;
 use App\Enums\ProjectStatus;
 use App\Models\Business;
 use App\Models\Client;
@@ -31,7 +32,21 @@ class DemoSeeder extends Seeder
             $client = Client::create(['name' => $example['client'], 'email' => strtolower($example['client']).'@demo.test', 'phone' => '+212 6 00 00 00 '.($index + 10)]);
             $business = Business::create(['client_id' => $client->id, 'name' => $example['business'], 'website' => 'https://'.str($example['business'])->slug().'.test']);
             $project = Project::create(['business_id' => $business->id, 'name' => $example['project'], 'status' => $example['status'], 'billing_type' => BillingType::Monthly, 'amount' => $example['amount'], 'currency' => 'MAD', 'start_date' => today()->subMonths(2), 'next_payment_date' => today()->addDays($example['due'])]);
-            $project->services()->sync($services->shuffle()->take(2));
+            if ($example['business'] === 'Compass Coffee') {
+                $tracked = Service::whereIn('name', ['Site web', 'Script', 'Scénario', 'Modèles', 'Production vidéo'])->get();
+                foreach ($tracked as $position => $service) {
+                    $project->projectServices()->create([
+                        'service_id' => $service->id,
+                        'status' => $position < 3 ? ProjectServiceStatus::Completed : ProjectServiceStatus::Pending,
+                        'completed_at' => $position < 3 ? now()->subDays(2) : null,
+                        'notes' => $service->name === 'Site web' ? 'Le site est prêt, reste uniquement la vérification mobile finale.' : null,
+                    ]);
+                }
+            } else {
+                foreach ($services->shuffle()->take(2) as $serviceId) {
+                    $project->projectServices()->create(['service_id' => $serviceId]);
+                }
+            }
             $project->teamMembers()->sync($team->shuffle()->take(2)->mapWithKeys(fn ($id) => [$id => ['role' => TeamMember::find($id)?->default_role]])->all());
             $period = $project->billingPeriods()->create(['period_start' => today()->startOfMonth(), 'period_end' => today()->endOfMonth(), 'amount' => $example['amount'], 'due_date' => today()->addDays($example['due']), 'description' => ucfirst(today()->translatedFormat('F Y'))]);
             if ($example['payment']) {

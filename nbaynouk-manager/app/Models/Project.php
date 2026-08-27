@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BillingType;
+use App\Enums\ProjectServiceStatus;
 use App\Enums\ProjectStatus;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,7 +24,7 @@ class Project extends Model
         'start_date', 'end_date', 'next_payment_date', 'notes',
     ];
 
-    protected $appends = ['total_paid', 'remaining_amount'];
+    protected $appends = ['total_paid', 'remaining_amount', 'progress_percentage', 'completed_services_count', 'total_services_count'];
 
     protected function casts(): array
     {
@@ -70,7 +71,18 @@ class Project extends Model
 
     public function services(): BelongsToMany
     {
-        return $this->belongsToMany(Service::class)->withTimestamps();
+        return $this->belongsToMany(Service::class)->using(ProjectService::class)
+            ->withPivot(['id', 'status', 'notes', 'completed_at', 'is_active'])->withTimestamps();
+    }
+
+    public function projectServices(): HasMany
+    {
+        return $this->hasMany(ProjectService::class);
+    }
+
+    public function activeProjectServices(): HasMany
+    {
+        return $this->projectServices()->where('is_active', true);
     }
 
     public function teamMembers(): BelongsToMany
@@ -107,6 +119,21 @@ class Project extends Model
     public function getRemainingAmountAttribute(): string
     {
         return Money::subtract($this->amount, $this->total_paid);
+    }
+
+    public function getTotalServicesCountAttribute(): int
+    {
+        return (int) ($this->attributes['active_project_services_count'] ?? ($this->relationLoaded('activeProjectServices') ? $this->activeProjectServices->count() : $this->activeProjectServices()->count()));
+    }
+
+    public function getCompletedServicesCountAttribute(): int
+    {
+        return (int) ($this->attributes['completed_services_count'] ?? ($this->relationLoaded('activeProjectServices') ? $this->activeProjectServices->where('status', ProjectServiceStatus::Completed)->count() : $this->activeProjectServices()->where('status', ProjectServiceStatus::Completed->value)->count()));
+    }
+
+    public function getProgressPercentageAttribute(): int
+    {
+        return $this->total_services_count === 0 ? 0 : (int) round(($this->completed_services_count / $this->total_services_count) * 100);
     }
 
     public function formattedAmount(string $attribute = 'amount'): string

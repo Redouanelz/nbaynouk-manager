@@ -12,7 +12,7 @@ class ServiceSeeder extends Seeder
     {
         $names = [
             'Meta Ads', 'TikTok Ads', 'Stratégie de contenu', 'Production vidéo',
-            'UGC', 'Photographie', 'Design graphique', 'Community Management',
+            'UGC', 'Photographie', 'Design graphique', 'Community Management', 'Script', 'Scénario', 'Modèles',
             'Site web', 'Shopify', 'Développement Laravel', 'Copywriting', 'Consulting',
         ];
 

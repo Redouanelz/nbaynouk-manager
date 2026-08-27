@@ -1,4 +1,5 @@
 import './bootstrap';
+import './modules/project-services';
 const sidebar=document.querySelector('[data-sidebar]'),overlay=document.querySelector('[data-sidebar-overlay]');
 const toggleSidebar=open=>{sidebar?.classList.toggle('-translate-x-full',!open);overlay?.classList.toggle('hidden',!open);document.body.classList.toggle('overflow-hidden',open)};
 document.querySelector('[data-sidebar-open]')?.addEventListener('click',()=>toggleSidebar(true));overlay?.addEventListener('click',()=>toggleSidebar(false));

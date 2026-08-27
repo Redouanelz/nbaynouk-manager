@@ -8,6 +8,7 @@ use App\Http\Requests\ProjectRequest;
 use App\Models\Business;
 use App\Models\Client;
 use App\Models\Project;
+use App\Models\ProjectService;
 use App\Models\Service;
 use App\Models\TeamMember;
 use App\Services\ActivityLogService;
@@ -22,6 +23,7 @@ class ProjectController extends Controller
     public function index(Request $request): View
     {
         $projects = Project::query()->with(['business.client', 'payments'])
+            ->withCount(['activeProjectServices', 'activeProjectServices as completed_services_count' => fn ($q) => $q->where('status', 'completed')])
             ->when($request->filled('search'), fn ($q) => $q->where(function ($q) use ($request) {
                 $term = '%'.$request->string('search').'%';
                 $q->where('name', 'like', $term)->orWhere('code', 'like', $term)
@@ -43,7 +45,7 @@ class ProjectController extends Controller
     {
         $project = DB::transaction(function () use ($request, $activity): Project {
             $project = Project::create($request->safe()->except(['services', 'team', 'create_first_period', 'due_date']));
-            $project->services()->sync($request->input('services', []));
+            $this->syncServices($project, $request->input('services', []));
             $project->teamMembers()->sync($this->teamPayload($request));
             $activity->record($project, 'project_created', 'Projet créé.');
 
@@ -65,7 +67,7 @@ class ProjectController extends Controller
 
     public function show(Project $project): View
     {
-        $project->load(['business.client', 'services', 'teamMembers', 'billingPeriods.payments', 'payments.billingPeriod', 'activityLogs' => fn ($q) => $q->latest('occurred_at')]);
+        $project->load(['business.client', 'activeProjectServices' => fn ($q) => $q->with(['service', 'attachments'])->orderBy('created_at'), 'teamMembers', 'billingPeriods.payments', 'payments.billingPeriod', 'activityLogs' => fn ($q) => $q->latest('occurred_at')]);
 
         return view('projects.show', compact('project'));
     }
@@ -79,16 +81,16 @@ class ProjectController extends Controller
     {
         DB::transaction(function () use ($request, $project, $activity): void {
             $oldStatus = $project->status;
-            $oldServices = $project->services()->pluck('services.id')->all();
+            $oldServices = $project->activeProjectServices()->pluck('service_id')->all();
             $oldTeam = $project->teamMembers()->pluck('team_members.id')->all();
             $project->update($request->safe()->except(['services', 'team', 'create_first_period', 'due_date']));
-            $project->services()->sync($request->input('services', []));
+            $this->syncServices($project, $request->input('services', []));
             $project->teamMembers()->sync($this->teamPayload($request));
             $activity->record($project, 'project_updated', 'Projet mis à jour.');
             if ($oldStatus !== $project->status) {
                 $activity->record($project, 'status_changed', "Statut modifié : {$oldStatus->label()} → {$project->status->label()}.");
             }
-            if ($oldServices !== $project->services()->pluck('services.id')->all()) {
+            if ($oldServices !== $project->activeProjectServices()->pluck('service_id')->all()) {
                 $activity->record($project, 'service_updated', 'Les services du projet ont été modifiés.');
             }
             if ($oldTeam !== $project->teamMembers()->pluck('team_members.id')->all()) {
@@ -117,11 +119,20 @@ class ProjectController extends Controller
 
     private function formData(): array
     {
-        return ['clients' => Client::with('businesses')->orderBy('name')->get(), 'businesses' => Business::with('client')->orderBy('name')->get(), 'services' => Service::orderBy('name')->get(), 'teamMembers' => TeamMember::active()->orderBy('name')->get(), 'statuses' => ProjectStatus::cases(), 'billingTypes' => BillingType::cases()];
+        return ['clients' => Client::with('businesses')->orderBy('name')->get(), 'businesses' => Business::with('client')->orderBy('name')->get(), 'services' => Service::where('is_custom', false)->orderBy('name')->get(), 'teamMembers' => TeamMember::active()->orderBy('name')->get(), 'statuses' => ProjectStatus::cases(), 'billingTypes' => BillingType::cases()];
     }
 
     private function teamPayload(ProjectRequest $request): array
     {
         return collect($request->input('team', []))->filter(fn ($member) => ! empty($member['selected']))->mapWithKeys(fn ($member, $id) => [$id => ['role' => $member['role'] ?? null]])->all();
+    }
+
+    private function syncServices(Project $project, array $serviceIds): void
+    {
+        $serviceIds = collect($serviceIds)->map(fn ($id) => (int) $id)->unique();
+        $project->projectServices()->whereNotIn('service_id', $serviceIds)->update(['is_active' => false]);
+        foreach ($serviceIds as $serviceId) {
+            ProjectService::query()->updateOrCreate(['project_id' => $project->id, 'service_id' => $serviceId], ['is_active' => true]);
+        }
     }
 }
