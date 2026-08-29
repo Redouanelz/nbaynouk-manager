@@ -79,7 +79,7 @@ class ApplicationWorkflowTest extends TestCase
     public function test_authenticated_user_can_open_all_primary_pages(): void
     {
         $this->actingAs(User::factory()->create());
-        foreach (['/dashboard', '/projects', '/clients', '/payments', '/billing', '/team', '/services', '/settings'] as $uri) {
+        foreach (['/dashboard', '/projects', '/clients', '/calendar', '/payments', '/billing', '/team', '/services', '/settings'] as $uri) {
             $this->get($uri)->assertOk();
         }
     }

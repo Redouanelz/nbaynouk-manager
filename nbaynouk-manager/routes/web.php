@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BillingPeriodController;
 use App\Http\Controllers\BusinessController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
@@ -24,6 +26,10 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/calendar', CalendarController::class)->name('calendar.index');
+    Route::post('/calendar/events', [CalendarEventController::class, 'store'])->name('calendar-events.store');
+    Route::patch('/calendar/events/{calendarEvent}', [CalendarEventController::class, 'update'])->name('calendar-events.update');
+    Route::delete('/calendar/events/{calendarEvent}', [CalendarEventController::class, 'destroy'])->name('calendar-events.destroy');
     Route::resource('projects', ProjectController::class)->except('restore');
     Route::patch('/projects/{project}/notes', [ProjectController::class, 'updateNotes'])->name('projects.notes');
     Route::patch('/projects/{project}/services/{projectService}/toggle', [ProjectServiceController::class, 'toggle'])->name('project-services.toggle');

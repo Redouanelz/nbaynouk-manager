@@ -15,11 +15,14 @@
                 <a class="nav-link {{ $onProjectsIndex && $projectStatus === \App\Enums\ProjectStatus::Suivi->value ? 'active' : '' }}" href="{{ route('projects.index', ['status' => \App\Enums\ProjectStatus::Suivi->value]) }}"><svg viewBox="0 0 24 24"><path d="M4 12h4l2-5 4 10 2-5h4M4 4v16h16"/></svg><span>En suivi</span><span class="nav-count">{{ $sidebarProjectCounts['suivi'] }}</span></a>
                 <a class="nav-link {{ request()->routeIs('clients.*','businesses.*') ? 'active' : '' }}" href="{{ route('clients.index') }}"><svg viewBox="0 0 24 24"><path d="M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 11l2 2 3-4"/></svg>Clients</a>
             </div>
-            <div><p class="nav-label">Gestion</p>
+            <div><p class="nav-label">Organisation</p>
+                <a class="nav-link {{ request()->routeIs('calendar.*','calendar-events.*') ? 'active' : '' }}" href="{{ route('calendar.index') }}"><svg viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v14H3V6a2 2 0 0 1 2-2Zm2-2v4m10-4v4M3 9h18M7 13h2m3 0h2m3 0h2M7 17h2m3 0h2"/></svg>Calendrier</a>
+            </div>
+            <div><p class="nav-label">Équipe</p>
                 <a class="nav-link {{ request()->routeIs('team.*') ? 'active' : '' }}" href="{{ route('team.index') }}"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Équipe</a>
                 <a class="nav-link {{ request()->routeIs('services.*') ? 'active' : '' }}" href="{{ route('services.index') }}"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5-8 4.5-8-4.5L12 3ZM4 12l8 4.5 8-4.5M4 16.5l8 4.5 8-4.5"/></svg>Services</a>
             </div>
-            <div><p class="nav-label">Finance</p>
+            <div><p class="nav-label">Finances</p>
                 <a class="nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}" href="{{ route('payments.index') }}"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3V6Zm0 4h18M7 15h3"/></svg>Paiements</a>
                 <a class="nav-link {{ request()->routeIs('billing.*') ? 'active' : '' }}" href="{{ route('billing.index') }}"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Zm3 5h6M9 12h6"/></svg>Facturation</a>
             </div>

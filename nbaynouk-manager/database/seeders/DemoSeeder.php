@@ -3,15 +3,18 @@
 namespace Database\Seeders;
 
 use App\Enums\BillingType;
+use App\Enums\CalendarEventColor;
 use App\Enums\PaymentMethod;
 use App\Enums\ProjectServiceStatus;
 use App\Enums\ProjectStatus;
 use App\Models\Business;
+use App\Models\CalendarEvent;
 use App\Models\Client;
 use App\Models\Payment;
 use App\Models\Project;
 use App\Models\Service;
 use App\Models\TeamMember;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DemoSeeder extends Seeder
@@ -53,6 +56,16 @@ class DemoSeeder extends Seeder
                 Payment::create(['project_id' => $project->id, 'billing_period_id' => $period->id, 'amount' => $example['payment'], 'payment_date' => today()->subDays(2), 'method' => PaymentMethod::BankTransfer, 'reference' => 'DEMO-'.($index + 1)]);
             }
             $project->activityLogs()->create(['type' => 'project_created', 'description' => 'Projet créé.', 'occurred_at' => now()->subDays(12 - $index)]);
+        }
+
+        $creatorId = User::query()->value('id');
+        foreach ([
+            ['Tournage Bayt Al Musk', 0, CalendarEventColor::Green],
+            ['Réunion Compass Coffee', 2, CalendarEventColor::Blue],
+            ['Préparation script HARD', 5, CalendarEventColor::Purple],
+            ['Livraison ProdVice', 8, CalendarEventColor::Orange],
+        ] as [$title, $dayOffset, $color]) {
+            CalendarEvent::create(['title' => $title, 'event_date' => today()->addDays($dayOffset), 'color' => $color, 'created_by' => $creatorId]);
         }
     }
 }
