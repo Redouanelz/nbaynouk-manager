@@ -119,4 +119,21 @@ class ApplicationWorkflowTest extends TestCase
             ->assertOk()
             ->assertDontSee($project->code);
     }
+
+    public function test_dashboard_ignores_periods_from_archived_projects(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $project = Project::factory()->create();
+        $project->billingPeriods()->create([
+            'period_start' => today()->startOfMonth(),
+            'period_end' => today()->endOfMonth(),
+            'amount' => 8000,
+            'due_date' => today()->subDay(),
+        ]);
+        $project->delete();
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Aucune échéance urgente.');
+    }
 }

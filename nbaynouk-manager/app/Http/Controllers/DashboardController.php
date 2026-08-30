@@ -17,7 +17,13 @@ class DashboardController extends Controller
         $activeCount = (clone $activeProjects)->count();
         $monthlyValue = (clone $activeProjects)->where('billing_type', BillingType::Monthly->value)->sum('amount');
         $receivedThisMonth = Payment::query()->whereBetween('payment_date', [today()->startOfMonth(), today()->endOfMonth()])->sum('amount');
-        $periods = BillingPeriod::query()->with(['payments', 'project.business.client'])->get();
+        // Exclude periods whose project was archived (soft deleted). Their
+        // belongsTo relation resolves to null and they no longer belong in
+        // current dashboard totals or links.
+        $periods = BillingPeriod::query()
+            ->whereHas('project')
+            ->with(['payments', 'project.business.client'])
+            ->get();
         $outstanding = $periods->reduce(fn (string $sum, BillingPeriod $period) => bcadd($sum, $period->remaining_amount, 2), '0.00');
         $pendingCount = $periods->filter(fn (BillingPeriod $period) => bccomp($period->remaining_amount, '0', 2) === 1)->count();
         $watchPeriods = $periods->filter(fn (BillingPeriod $period) => $period->payment_status->value === 'overdue' || ($period->due_date?->between(today(), today()->addDays(7)) && bccomp($period->remaining_amount, '0', 2) === 1))->sortBy('due_date')->take(5);

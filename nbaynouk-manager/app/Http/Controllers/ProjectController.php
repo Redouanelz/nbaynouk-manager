@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\BillingType;
+use App\Enums\PaymentMethod;
+use App\Enums\ProjectExpenseCategory;
+use App\Enums\ProjectExpenseStatus;
 use App\Enums\ProjectStatus;
 use App\Http\Requests\ProjectRequest;
 use App\Models\Business;
@@ -73,9 +76,9 @@ class ProjectController extends Controller
 
     public function show(Project $project): View
     {
-        $project->load(['business.client', 'activeProjectServices' => fn ($q) => $q->with(['service', 'attachments'])->orderBy('created_at'), 'teamMembers', 'billingPeriods.payments', 'payments.billingPeriod', 'activityLogs' => fn ($q) => $q->latest('occurred_at')]);
+        $project->load(['business.client', 'activeProjectServices' => fn ($q) => $q->with(['service', 'attachments'])->orderBy('created_at'), 'teamMembers', 'billingPeriods.payments', 'payments.billingPeriod', 'expenses' => fn ($q) => $q->with(['service', 'billingPeriod'])->orderByDesc('expense_date')->orderByDesc('created_at'), 'activityLogs' => fn ($q) => $q->latest('occurred_at')]);
 
-        return view('projects.show', compact('project'));
+        return view('projects.show', ['project' => $project, 'expenseCategories' => ProjectExpenseCategory::cases(), 'expenseStatuses' => ProjectExpenseStatus::cases(), 'paymentMethods' => PaymentMethod::cases()]);
     }
 
     public function edit(Project $project): View

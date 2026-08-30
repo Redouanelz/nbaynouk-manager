@@ -1,0 +1,5 @@
+@layer components {
+  .expense-kpis{@apply grid gap-3 sm:grid-cols-2 xl:grid-cols-5}.expense-kpis .stat{@apply min-h-32 p-5}.expense-kpis .stat-value{@apply mt-5 text-2xl}
+  .expense-filters{@apply my-5 flex flex-wrap items-center gap-2}.expense-filters button{@apply rounded-full border border-border bg-white px-4 py-2 text-xs font-bold text-muted}.expense-filters button.is-active{@apply border-ink bg-ink text-white}.expense-filters .input{@apply ml-auto w-full sm:w-64}
+  .expense-actions{@apply flex gap-3}.expense-form-grid{@apply grid gap-5 sm:grid-cols-2}.expense-drawer form>footer{@apply mt-8 flex justify-end gap-2}
+}

@@ -24,7 +24,7 @@ class Project extends Model
         'start_date', 'end_date', 'next_payment_date', 'notes',
     ];
 
-    protected $appends = ['total_paid', 'remaining_amount', 'progress_percentage', 'completed_services_count', 'total_services_count'];
+    protected $appends = ['total_paid', 'remaining_amount', 'total_expenses', 'paid_expenses', 'pending_expenses', 'estimated_profit', 'profit_margin_percentage', 'net_cash', 'progress_percentage', 'completed_services_count', 'total_services_count'];
 
     protected function casts(): array
     {
@@ -100,6 +100,55 @@ class Project extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(ProjectExpense::class);
+    }
+
+    public function getTotalExpensesAttribute(): string
+    {
+        return $this->expenseSum();
+    }
+
+    public function getPaidExpensesAttribute(): string
+    {
+        return $this->expenseSum('paid');
+    }
+
+    public function getPendingExpensesAttribute(): string
+    {
+        return $this->expenseSum('pending');
+    }
+
+    public function getEstimatedProfitAttribute(): string
+    {
+        return Money::subtract($this->amount, $this->total_expenses);
+    }
+
+    public function getProfitMarginPercentageAttribute(): ?float
+    {
+        return bccomp((string) $this->amount, '0', 2) === 1 ? round(((float) $this->estimated_profit / (float) $this->amount) * 100, 1) : null;
+    }
+
+    public function getNetCashAttribute(): string
+    {
+        return Money::subtract($this->total_paid, $this->paid_expenses);
+    }
+
+    private function expenseSum(?string $status = null): string
+    {
+        $attribute = $status ? $status.'_expenses_sum_amount' : 'expenses_sum_amount';
+        if (array_key_exists($attribute, $this->attributes)) {
+            return bcadd((string) ($this->attributes[$attribute] ?? 0), '0', 2);
+        }
+        $query = $this->expenses();
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        return bcadd((string) $query->sum('amount'), '0', 2);
     }
 
     public function activityLogs(): HasMany

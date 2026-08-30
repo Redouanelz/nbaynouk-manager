@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Enums\BillingType;
 use App\Enums\CalendarEventColor;
 use App\Enums\PaymentMethod;
+use App\Enums\ProjectExpenseCategory;
+use App\Enums\ProjectExpenseStatus;
 use App\Enums\ProjectServiceStatus;
 use App\Enums\ProjectStatus;
 use App\Models\Business;
@@ -54,6 +56,11 @@ class DemoSeeder extends Seeder
             $period = $project->billingPeriods()->create(['period_start' => today()->startOfMonth(), 'period_end' => today()->endOfMonth(), 'amount' => $example['amount'], 'due_date' => today()->addDays($example['due']), 'description' => ucfirst(today()->translatedFormat('F Y'))]);
             if ($example['payment']) {
                 Payment::create(['project_id' => $project->id, 'billing_period_id' => $period->id, 'amount' => $example['payment'], 'payment_date' => today()->subDays(2), 'method' => PaymentMethod::BankTransfer, 'reference' => 'DEMO-'.($index + 1)]);
+            }
+            if ($example['business'] === 'Compass Coffee') {
+                foreach ([['Modèle', '600.00', ProjectExpenseCategory::Model, ProjectExpenseStatus::Paid], ['Airbnb', '800.00', ProjectExpenseCategory::Location, ProjectExpenseStatus::Paid], ['Transport', '200.00', ProjectExpenseCategory::Transport, ProjectExpenseStatus::Pending]] as [$label, $amount, $category, $status]) {
+                    $project->expenses()->create(['billing_period_id' => $period->id, 'label' => $label, 'amount' => $amount, 'category' => $category, 'status' => $status, 'expense_date' => today(), 'created_by' => User::query()->value('id')]);
+                }
             }
             $project->activityLogs()->create(['type' => 'project_created', 'description' => 'Projet créé.', 'occurred_at' => now()->subDays(12 - $index)]);
         }

@@ -17,7 +17,7 @@ class BillingPeriod extends Model
         'project_id', 'period_start', 'period_end', 'amount', 'due_date', 'description',
     ];
 
-    protected $appends = ['total_paid', 'remaining_amount', 'payment_status'];
+    protected $appends = ['total_paid', 'remaining_amount', 'payment_status', 'total_expenses', 'estimated_profit', 'profit_margin_percentage'];
 
     protected function casts(): array
     {
@@ -37,6 +37,26 @@ class BillingPeriod extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(ProjectExpense::class);
+    }
+
+    public function getTotalExpensesAttribute(): string
+    {
+        return bcadd((string) $this->expenses()->sum('amount'), '0', 2);
+    }
+
+    public function getEstimatedProfitAttribute(): string
+    {
+        return Money::subtract($this->amount, $this->total_expenses);
+    }
+
+    public function getProfitMarginPercentageAttribute(): ?float
+    {
+        return bccomp((string) $this->amount, '0', 2) === 1 ? round(((float) $this->estimated_profit / (float) $this->amount) * 100, 1) : null;
     }
 
     public function getTotalPaidAttribute(): string

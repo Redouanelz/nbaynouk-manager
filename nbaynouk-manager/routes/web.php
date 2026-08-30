@@ -9,6 +9,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectExpenseController;
 use App\Http\Controllers\ProjectServiceAttachmentController;
 use App\Http\Controllers\ProjectServiceController;
 use App\Http\Controllers\SearchController;
@@ -32,6 +33,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('/calendar/events/{calendarEvent}', [CalendarEventController::class, 'destroy'])->name('calendar-events.destroy');
     Route::resource('projects', ProjectController::class)->except('restore');
     Route::patch('/projects/{project}/notes', [ProjectController::class, 'updateNotes'])->name('projects.notes');
+    Route::post('/projects/{project}/expenses', [ProjectExpenseController::class, 'store'])->name('project-expenses.store');
+    Route::patch('/projects/{project}/expenses/{projectExpense}', [ProjectExpenseController::class, 'update'])->name('project-expenses.update');
+    Route::delete('/projects/{project}/expenses/{projectExpense}', [ProjectExpenseController::class, 'destroy'])->name('project-expenses.destroy');
     Route::patch('/projects/{project}/services/{projectService}/toggle', [ProjectServiceController::class, 'toggle'])->name('project-services.toggle');
     Route::patch('/projects/{project}/services/{projectService}', [ProjectServiceController::class, 'update'])->name('project-services.update');
     Route::post('/projects/{project}/custom-services', [ProjectServiceController::class, 'storeCustom'])->name('project-services.custom.store');

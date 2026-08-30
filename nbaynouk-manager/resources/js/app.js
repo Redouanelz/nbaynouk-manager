@@ -1,5 +1,6 @@
 import './bootstrap';
 import './modules/project-services';
+import './modules/project-expenses';
 import './modules/calendar';
 
 const sidebar=document.querySelector('[data-sidebar]'),overlay=document.querySelector('[data-sidebar-overlay]');

@@ -29,6 +29,11 @@ class Service extends Model
         return $this->hasMany(ProjectService::class);
     }
 
+    public function projectExpenses(): HasMany
+    {
+        return $this->hasMany(ProjectExpense::class);
+    }
+
     public function createdForProject(): BelongsTo
     {
         return $this->belongsTo(Project::class, 'created_for_project_id');

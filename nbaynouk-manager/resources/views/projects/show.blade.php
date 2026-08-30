@@ -10,14 +10,9 @@
         <div class="flex gap-2"><x-badge :value="$project->status" /><a class="button-secondary"
                 href="{{ route('projects.edit', $project) }}">Modifier</a></div>
     </div>
-    <section class="stats-grid mt-8"><x-stat label="Valeur" :value="\App\Support\Money::format($project->amount)" /><x-stat label="Payé"
-            :value="\App\Support\Money::format($project->total_paid)" /><x-stat label="Reste" :value="\App\Support\Money::format($project->remaining_amount)" /><x-stat label="Avancement" :value="$project->progress_percentage . '%'"
-            :note="$project->completed_services_count .
-                ' / ' .
-                $project->total_services_count .
-                ' services terminés'" /></section>
+    <section class="stats-grid mt-8"><x-stat label="Valeur" :value="\App\Support\Money::format($project->amount)" /><x-stat label="Encaissé" :value="\App\Support\Money::format($project->total_paid)" /><x-stat label="Charges" :value="\App\Support\Money::format($project->total_expenses)" /><x-stat label="Marge estimée" :value="\App\Support\Money::format($project->estimated_profit)" :note="$project->profit_margin_percentage === null ? 'Rentabilité —' : 'Rentabilité ' . number_format($project->profit_margin_percentage, 1, ',', ' ') . ' %'" /></section>
     <nav class="tabs"><a href="#overview">Vue d’ensemble</a><a href="#progress">Avancement</a><a
-            href="#billing">Facturation</a><a href="#payments">Paiements</a><a href="#team">Équipe</a><a
+            href="#billing">Facturation</a><a href="#payments">Paiements</a><a href="#expenses">Charges</a><a href="#team">Services & équipe</a><a
             href="#activity">Activité</a><a href="#notes">Notes</a></nav>
     <section id="overview" class="detail-grid">
         <article class="panel">
@@ -62,6 +57,26 @@
                 </div>
             </dl>
         </article>
+    </section>
+    <section id="expenses" class="section-block" data-project-expenses data-store-url="{{ route('project-expenses.store', $project) }}">
+        <div class="section-heading"><div><p class="eyebrow">Rentabilité</p><h2>Charges du projet</h2></div><button type="button" class="button-primary" data-expense-add>+ Ajouter une charge</button></div>
+        <div class="expense-kpis">
+            <x-stat label="Total charges" :value="\App\Support\Money::format($project->total_expenses)" data-expense-kpi="total" />
+            <x-stat label="Payées" :value="\App\Support\Money::format($project->paid_expenses)" data-expense-kpi="paid" />
+            <x-stat label="À payer" :value="\App\Support\Money::format($project->pending_expenses)" data-expense-kpi="pending" />
+            <x-stat label="Marge estimée" :value="\App\Support\Money::format($project->estimated_profit)" data-expense-kpi="profit" />
+            <x-stat label="Rentabilité" :value="$project->profit_margin_percentage === null ? '—' : number_format($project->profit_margin_percentage, 1, ',', ' ') . ' %'" data-expense-kpi="margin" />
+        </div>
+        <div class="expense-filters"><button type="button" class="is-active" data-expense-filter="all">Toutes</button><button type="button" data-expense-filter="paid">Payées</button><button type="button" data-expense-filter="pending">À payer</button><input class="input" type="search" placeholder="Rechercher une charge…" data-expense-search></div>
+        <div class="table-wrap"><table><thead><tr><th>Charge</th><th>Catégorie</th><th>Service</th><th>Date</th><th>Statut</th><th>Montant</th><th>Actions</th></tr></thead><tbody data-expense-list>
+            @forelse($project->expenses as $expense)
+                @php($expenseData = ['id' => $expense->id, 'label' => $expense->label, 'amount' => $expense->amount, 'category' => $expense->category?->value, 'expense_date' => $expense->expense_date->toDateString(), 'status' => $expense->status->value, 'payment_method' => $expense->payment_method?->value, 'supplier' => $expense->supplier, 'service_id' => $expense->service_id, 'billing_period_id' => $expense->billing_period_id, 'notes' => $expense->notes, 'update_url' => route('project-expenses.update', [$project, $expense]), 'delete_url' => route('project-expenses.destroy', [$project, $expense])])
+                <tr data-expense-row data-status="{{ $expense->status->value }}" data-search="{{ str($expense->label.' '.$expense->supplier)->lower() }}">
+                    <td><strong>{{ $expense->label }}</strong>@if($expense->supplier)<span>{{ $expense->supplier }}</span>@endif</td><td>{{ $expense->category?->label() ?? '—' }}</td><td>{{ $expense->service?->name ?? '—' }}</td><td>{{ $expense->expense_date->translatedFormat('d F Y') }}</td><td><span class="badge {{ $expense->status->badgeClass() }}">{{ $expense->status->label() }}</span></td><td>{{ \App\Support\Money::format($expense->amount) }}</td>
+                    <td><div class="expense-actions"><button type="button" class="text-link" data-expense-edit data-expense='@json($expenseData)'>Modifier</button><button type="button" class="text-link text-danger" data-expense-delete>Supprimer</button></div></td>
+                </tr>
+            @empty<tr data-expense-empty><td colspan="7">Aucune charge enregistrée.</td></tr>@endforelse
+        </tbody></table></div>
     </section>
     <section id="progress" class="section-block" data-project-progress>
         <div class="progress-summary">
@@ -276,4 +291,7 @@
             </form>
         </aside>
     </div>
+    <div class="service-drawer-root" data-expense-drawer aria-hidden="true"><button class="drawer-overlay" type="button" data-expense-close aria-label="Fermer"></button><aside class="service-drawer expense-drawer" role="dialog" aria-modal="true" aria-labelledby="expense-drawer-title"><header><div><p class="eyebrow">Charge</p><h2 id="expense-drawer-title" data-expense-title>Ajouter une charge</h2></div><button type="button" data-expense-close aria-label="Fermer">×</button></header>
+        <form data-expense-form><div class="expense-form-grid"><div class="sm:col-span-2"><label class="label">Libellé *</label><input class="input w-full" name="label" maxlength="255" required></div><div><label class="label">Montant *</label><input class="input w-full" name="amount" type="number" min="0.01" max="9999999999.99" step="0.01" required></div><div><label class="label">Date *</label><input class="input w-full" name="expense_date" type="date" required></div><div><label class="label">Catégorie</label><select class="select w-full" name="category"><option value="">—</option>@foreach($expenseCategories as $category)<option value="{{ $category->value }}">{{ $category->label() }}</option>@endforeach</select></div><div><label class="label">Statut *</label><select class="select w-full" name="status" required>@foreach($expenseStatuses as $status)<option value="{{ $status->value }}">{{ $status->label() }}</option>@endforeach</select></div><div><label class="label">Méthode de paiement</label><select class="select w-full" name="payment_method"><option value="">—</option>@foreach($paymentMethods as $method)<option value="{{ $method->value }}">{{ $method->label() }}</option>@endforeach</select></div><div><label class="label">Fournisseur / bénéficiaire</label><input class="input w-full" name="supplier" maxlength="255"></div><div><label class="label">Service lié</label><select class="select w-full" name="service_id"><option value="">—</option>@foreach($project->activeProjectServices as $projectService)<option value="{{ $projectService->service_id }}">{{ $projectService->service->name }}</option>@endforeach</select></div><div><label class="label">Période de facturation</label><select class="select w-full" name="billing_period_id"><option value="">—</option>@foreach($project->billingPeriods->sortByDesc('period_start') as $period)<option value="{{ $period->id }}">{{ $period->description ?: $period->period_start->translatedFormat('F Y') }}</option>@endforeach</select></div><div class="sm:col-span-2"><label class="label">Notes</label><textarea class="textarea w-full" name="notes" maxlength="20000"></textarea></div></div><div class="alert-error hidden mt-5" data-expense-errors></div><footer><button type="button" class="button-secondary" data-expense-close>Annuler</button><button class="button-primary" data-expense-submit>Enregistrer</button></footer></form>
+    </aside></div>
 </x-layout>
