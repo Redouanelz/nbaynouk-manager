@@ -24,6 +24,7 @@
             </div>
             <div><p class="nav-label">Finances</p>
                 <a class="nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}" href="{{ route('payments.index') }}"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3V6Zm0 4h18M7 15h3"/></svg>Paiements</a>
+                <a class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}" href="{{ route('expenses.index') }}"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4V5Zm4 4h8M8 13h5M16 13h.01"/></svg>Charges</a>
                 <a class="nav-link {{ request()->routeIs('billing.*') ? 'active' : '' }}" href="{{ route('billing.index') }}"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Zm3 5h6M9 12h6"/></svg>Facturation</a>
             </div>
         </nav>

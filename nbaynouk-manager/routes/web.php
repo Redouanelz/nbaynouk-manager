@@ -7,6 +7,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExpenseOverviewController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectExpenseController;
@@ -27,6 +28,7 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'destroy'])->name('logout');
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/expenses', ExpenseOverviewController::class)->name('expenses.index');
     Route::get('/calendar', CalendarController::class)->name('calendar.index');
     Route::post('/calendar/events', [CalendarEventController::class, 'store'])->name('calendar-events.store');
     Route::patch('/calendar/events/{calendarEvent}', [CalendarEventController::class, 'update'])->name('calendar-events.update');

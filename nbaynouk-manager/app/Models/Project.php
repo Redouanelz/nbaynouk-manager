@@ -137,6 +137,16 @@ class Project extends Model
         return Money::subtract($this->total_paid, $this->paid_expenses);
     }
 
+    public function profitabilityLevel(?float $margin = null): ?string
+    {
+        $margin ??= isset($this->attributes['overview_margin']) ? (float) $this->attributes['overview_margin'] : $this->profit_margin_percentage;
+        if ($margin === null) {
+            return null;
+        }
+
+        return $margin >= 70 ? 'high' : ($margin >= 40 ? 'medium' : 'low');
+    }
+
     private function expenseSum(?string $status = null): string
     {
         $attribute = $status ? $status.'_expenses_sum_amount' : 'expenses_sum_amount';

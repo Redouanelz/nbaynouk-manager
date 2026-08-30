@@ -31,7 +31,7 @@ class ProjectController extends Controller
             'status' => ['nullable', Rule::enum(ProjectStatus::class)],
             'billing_type' => ['nullable', Rule::enum(BillingType::class)],
         ]);
-        $projects = Project::query()->with(['business.client', 'payments'])
+        $projects = Project::query()->with(['business.client', 'payments'])->withSum('expenses', 'amount')
             ->withCount(['activeProjectServices', 'activeProjectServices as completed_services_count' => fn ($q) => $q->where('status', 'completed')])
             ->when($request->filled('search'), fn ($q) => $q->where(function ($q) use ($request) {
                 $term = '%'.$request->string('search').'%';
