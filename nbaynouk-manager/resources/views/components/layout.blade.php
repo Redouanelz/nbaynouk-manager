@@ -1,5 +1,6 @@
+@php($interfaceTheme = auth()->user()?->theme ?? \App\Enums\Theme::Light)
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="{{ $interfaceTheme->dataAttribute() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

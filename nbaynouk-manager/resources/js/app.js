@@ -22,3 +22,17 @@ if(search){
 }
 
 document.querySelectorAll('table').forEach(table=>{const labels=[...table.querySelectorAll('thead th')].map(th=>th.textContent.trim());table.querySelectorAll('tbody tr').forEach(row=>[...row.children].forEach((cell,index)=>cell.dataset.label=labels[index]||''))});
+
+const themePicker=document.querySelector('[data-theme-picker]');
+if(themePicker){
+    const options=[...themePicker.querySelectorAll('[data-theme-value]')],status=themePicker.querySelector('[data-theme-status]'),csrf=document.querySelector('meta[name="csrf-token"]')?.content;
+    const select=value=>options.forEach(option=>option.setAttribute('aria-checked',String(option.dataset.themeValue===value)));
+    options.forEach(option=>option.addEventListener('click',async()=>{
+        const previous=document.documentElement.dataset.theme,value=option.dataset.themeValue,attribute=value.replace('_','-');
+        if(previous===attribute)return;
+        document.documentElement.dataset.theme=attribute;select(value);status.textContent='Enregistrementâ€¦';options.forEach(item=>item.disabled=true);
+        try{const response=await fetch(themePicker.dataset.url,{method:'PATCH',headers:{Accept:'application/json','Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({theme:value})});if(!response.ok)throw new Error();status.textContent='ThÃ¨me mis Ã  jour.'}
+        catch{document.documentElement.dataset.theme=previous;select(previous.replace('-','_'));status.textContent="Impossible d'enregistrer le thÃ¨me.";status.classList.add('is-error')}
+        finally{options.forEach(item=>item.disabled=false);window.setTimeout(()=>{status.textContent='';status.classList.remove('is-error')},3500)}
+    }));
+}
