@@ -98,6 +98,24 @@ class ProjectProgressTest extends TestCase
         $this->assertSame('À conserver', $item->notes);
     }
 
+    public function test_service_can_be_removed_without_deleting_its_history(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $project = Project::factory()->create();
+        $other = Project::factory()->create();
+        $item = $this->attach($project, 'Montage');
+
+        $this->deleteJson(route('project-services.destroy', [$other, $item]))->assertNotFound();
+        $this->deleteJson(route('project-services.destroy', [$project, $item]))
+            ->assertOk()
+            ->assertJson(['success' => true, 'progress' => 0, 'total_count' => 0]);
+
+        $this->assertFalse($item->fresh()->is_active);
+        $this->assertDatabaseHas('project_service', ['id' => $item->id, 'is_active' => false]);
+        $this->assertDatabaseHas('activity_logs', ['project_id' => $project->id, 'type' => 'service_updated']);
+        $this->deleteJson(route('project-services.destroy', [$project, $item]))->assertNotFound();
+    }
+
     private function attach(Project $project, string $name): ProjectService
     {
         $service = Service::create(['name' => $name, 'slug' => Str::slug($name).'-'.Str::random(6)]);

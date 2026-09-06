@@ -58,6 +58,14 @@
 [data-theme="dark-gold"] .button-primary{background:var(--app-accent);border-color:var(--app-accent);color:#17130b}[data-theme="dark-gold"] .button-primary:hover{background:var(--app-accent-hover)}[data-theme="dark-gold"] .button-secondary,[data-theme="dark-gold"] .icon-button,[data-theme="dark-gold"] .choice,[data-theme="dark-gold"] .calendar-color-choice,[data-theme="dark-gold"] .theme-option{background:var(--app-surface);border-color:var(--app-border);color:var(--app-text)}
 [data-theme="dark-gold"] .input,[data-theme="dark-gold"] .select,[data-theme="dark-gold"] .textarea,[data-theme="dark-gold"] .search-input{background:var(--app-surface-secondary);border-color:var(--app-border);color:var(--app-text);box-shadow:none}[data-theme="dark-gold"] .input:focus,[data-theme="dark-gold"] .select:focus,[data-theme="dark-gold"] .textarea:focus,[data-theme="dark-gold"] .search-input:focus{border-color:var(--app-accent);--tw-ring-color:var(--app-focus)}
 [data-theme="dark-gold"] th,[data-theme="dark-gold"] .calendar-weekdays,[data-theme="dark-gold"] .calendar-day.is-outside{background:var(--app-surface-secondary);color:var(--app-text-muted)}[data-theme="dark-gold"] tbody tr:hover,[data-theme="dark-gold"] .watch-row:hover{background:var(--app-surface-hover)}[data-theme="dark-gold"] .calendar-day-target time.is-today,[data-theme="dark-gold"] .calendar-mobile time.is-today strong{background:var(--app-accent-soft);border-color:var(--app-accent)}
+[data-theme="dark-gold"] .calendar-event{color:var(--app-text)}
+[data-theme="dark-gold"] .calendar-color-black{background:#252521}
+[data-theme="dark-gold"] .calendar-color-green{background:#17251e}
+[data-theme="dark-gold"] .calendar-color-blue{background:#17242b}
+[data-theme="dark-gold"] .calendar-color-red{background:#291b1b}
+[data-theme="dark-gold"] .calendar-color-orange{background:#2b2118}
+[data-theme="dark-gold"] .calendar-color-purple{background:#241d29}
+[data-theme="dark-gold"] .calendar-color-beige{background:#29251d}
 [data-theme="dark-gold"] .badge-positive{background:rgb(52 116 81/.18);border-color:rgb(116 169 139/.25);color:#9bceb0}[data-theme="dark-gold"] .badge-warning{background:rgb(180 110 30/.16);border-color:rgb(209 164 95/.25);color:#e1b976}[data-theme="dark-gold"] .badge-danger{background:rgb(161 75 75/.18);border-color:rgb(212 125 120/.25);color:#e69b96}[data-theme="dark-gold"] .badge-neutral{background:var(--app-surface-secondary);border-color:var(--app-border);color:var(--app-text-muted)}
 [data-theme="dark-gold"] .search-panel{background:var(--app-surface);border-color:var(--app-border)}[data-theme="dark-gold"] .search-result:hover{background:var(--app-surface-hover)}[data-theme="dark-gold"] .drawer-overlay,[data-theme="dark-gold"] .calendar-modal-overlay{background:var(--app-overlay)}
 @media(max-width:767px){[data-theme="dark-gold"] tr{background:var(--app-surface);border-color:var(--app-border)}}

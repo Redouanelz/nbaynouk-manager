@@ -46,6 +46,27 @@ class ProjectServiceController extends Controller
         return response()->json(['success' => true, 'message' => 'Informations mises à jour.']);
     }
 
+    public function destroy(Project $project, ProjectService $projectService, ActivityLogService $activity): JsonResponse
+    {
+        $this->assertBelongsToProject($project, $projectService);
+
+        DB::transaction(function () use ($projectService, $activity): void {
+            $name = $projectService->service->name;
+            $projectService->update(['is_active' => false]);
+            $activity->record($projectService->project, 'service_updated', "Le service {$name} a été retiré du projet.", ['service_id' => $projectService->service_id, 'service_name' => $name]);
+        });
+
+        $project->unsetRelation('activeProjectServices')->refresh();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Service retiré du projet.',
+            'progress' => $project->progress_percentage,
+            'completed_count' => $project->completed_services_count,
+            'total_count' => $project->total_services_count,
+        ]);
+    }
+
     public function storeCustom(Request $request, Project $project, ActivityLogService $activity): JsonResponse
     {
         $data = $request->validate(['name' => ['required', 'string', 'max:255']]);

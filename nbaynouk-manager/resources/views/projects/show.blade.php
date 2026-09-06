@@ -106,6 +106,7 @@
                         <div data-drawer-data data-service-name="{{ $projectService->service->name }}"
                             data-service-status="{{ $projectService->status->label() }}"
                             data-update-url="{{ route('project-services.update', [$project, $projectService]) }}"
+                            data-delete-url="{{ route('project-services.destroy', [$project, $projectService]) }}"
                             data-upload-url="{{ route('project-service-attachments.store', [$project, $projectService]) }}"
                             data-created="{{ $projectService->created_at->translatedFormat('d F Y') }}"
                             data-completed="{{ $projectService->completed_at?->translatedFormat('d F Y') ?? '—' }}">
@@ -286,7 +287,7 @@
                         <dd data-drawer-completed></dd>
                     </div>
                 </dl>
-                <footer><button type="button" class="button-secondary" data-drawer-close>Annuler</button><button
+                <footer><button type="button" class="button-danger mr-auto" data-service-delete>Supprimer le service</button><button type="button" class="button-secondary" data-drawer-close>Annuler</button><button
                         class="button-primary">Enregistrer</button></footer>
             </form>
         </aside>
